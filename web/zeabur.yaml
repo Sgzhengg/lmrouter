@@ -1,0 +1,25 @@
+# LMRouter Web Console
+name: lmrouter-web
+
+# 服务配置
+services:
+  - type: web
+    name: frontend
+    runtime: docker
+    dockerContext: .
+    dockerfilePath: Dockerfile
+    ports:
+      - port: 80
+        type: HTTP
+    env:
+      - key: API_BASE_URL
+        value: ${API_BASE_URL}
+    # 健康检查
+    healthCheck:
+      http:
+        path: /
+        port: 80
+    # 资源限制
+    resources:
+      cpu: 0.5
+      memory: 512

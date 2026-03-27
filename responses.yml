@@ -1,0 +1,5 @@
+# Simple responses config for MockLLM
+default_response:
+  choices:
+    - message:
+        content: "This is a mock response from MockLLM"

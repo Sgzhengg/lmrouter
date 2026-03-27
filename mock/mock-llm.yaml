@@ -1,0 +1,38 @@
+# mock-llm.yaml
+responses:
+  - request:
+      messages:
+        - content: "你好"
+    response:
+      choices:
+        - message:
+            content: "你好！我是 MockLLM 模拟助手，正在测试 LMRouter 的路由功能。"
+  
+  - request:
+      messages:
+        - content: "Hello"
+    response:
+      choices:
+        - message:
+            content: "Hello! I'm MockLLM, testing LMRouter routing."
+  
+  - request:
+      messages:
+        - content: "介绍自己"
+    response:
+      choices:
+        - message:
+            content: "我是 Mock-LLM，一个用于模拟 OpenAI API 的测试工具。"
+  
+  - request:
+      messages:
+        - content: "写一封邮件"
+    response:
+      choices:
+        - message:
+            content: "尊敬的客户：\n\n感谢您的来信。关于您咨询的问题，我们的团队会尽快与您联系。\n\n此致\n敬礼"
+
+default_response:
+  choices:
+    - message:
+        content: "这是默认响应。您的问题没有匹配到预设答案。"
