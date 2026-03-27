@@ -12,7 +12,9 @@ services:
       - port: 80
         type: HTTP
     env:
-      - key: API_BASE_URL
+      # 后端 API 地址 - 部署后需要设置为实际的后端 URL
+      # Zeabur 会自动替换 ${API_BASE_URL} 为实际的后端服务地址
+      - key: VITE_API_BASE_URL
         value: ${API_BASE_URL}
     # 健康检查
     healthCheck:

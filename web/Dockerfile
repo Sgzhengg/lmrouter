@@ -15,18 +15,25 @@ RUN pnpm install --frozen-lockfile
 # 复制源代码
 COPY . .
 
-# 构建项目
+# 设置环境变量并构建
+ARG VITE_API_BASE_URL=""
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 RUN pnpm run build
 
 # 生产阶段
 FROM nginx:alpine
 
+# 安装 envsubst 用于环境变量替换
+RUN apk add --no-cache gettext
+
 # 复制构建产物到 nginx
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# 复制 nginx 配置
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# 复制 nginx 配置模板
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+# 使用 envsubst 替换环境变量并启动 nginx
+CMD sh -c "envsubst '$$VITE_API_BASE_URL' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
+

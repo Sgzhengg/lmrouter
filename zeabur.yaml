@@ -7,12 +7,17 @@ services:
     name: api
     runtime: node
     buildCommand: pnpm install && pnpm run build
-    startCommand: pnpm run start
+    startCommand: pnpm run start config/config.prod.yaml
     env:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 3000
+      # 可选：配置真实的 API 密钥
+      # - key: OPENAI_API_KEY
+      #   value: sk-your-openai-key
+      # - key: ANTHROPIC_API_KEY
+      #   value: sk-ant-your-anthropic-key
     # 端口配置
     ports:
       - port: 3000
@@ -26,7 +31,3 @@ services:
     resources:
       cpu: 1
       memory: 1024
-    # 挂载配置文件
-    mounts:
-      - dir: /app/config
-        type: volume

@@ -1,0 +1,59 @@
+# LMRouter 生产环境配置文件
+# 用于 Zeabur 等云平台部署
+
+server:
+  host: 0.0.0.0
+  port: 3000
+  logging: production
+
+auth:
+  enabled: false           # 生产环境建议启用认证
+  better_auth:
+    trusted_origins: []
+
+responses_store:
+  type: in_memory
+
+access_keys:
+  - sk-demo-key-12345      # 演示密钥，请在生产环境中替换
+
+# ============================================
+# 提供商配置
+# ============================================
+# 注意：生产环境需要配置真实的 API 密钥
+# 可以通过环境变量设置，例如：
+# OPENAI_API_KEY=sk-xxx ANTHROPIC_API_KEY=sk-ant-xxx
+
+providers:
+  # OpenAI 配置示例
+  openai:
+    type: openai
+    base_url: https://api.openai.com/v1
+    api_key: ${OPENAI_API_KEY:}  # 从环境变量读取
+
+  # Anthropic 配置示例
+  anthropic:
+    type: anthropic
+    base_url: https://api.anthropic.com
+    api_key: ${ANTHROPIC_API_KEY:}
+
+# ============================================
+# 模型配置
+# ============================================
+models:
+  # 示例模型配置
+  gpt-4-turbo:
+    providers:
+      - provider: openai
+        model: gpt-4-turbo-preview
+
+  claude-3-opus:
+    providers:
+      - provider: anthropic
+        model: claude-3-opus-20240229
+
+# 默认通配符路由
+"*":
+  providers:
+    - provider: openai
+      model: ""
