@@ -7,7 +7,7 @@ services:
     name: api
     runtime: node
     buildCommand: pnpm install && pnpm run build
-    startCommand: pnpm run start config/config.prod.yaml
+    startCommand: pnpm run start:prod
     env:
       - key: NODE_ENV
         value: production

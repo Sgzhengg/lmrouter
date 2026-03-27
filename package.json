@@ -28,6 +28,7 @@
     "dev:worker": "wrangler dev --tsconfig tsconfig.worker.json",
     "build": "tsc",
     "start": "node dist/index.js config/config.yaml",
+    "start:prod": "node dist/index.js config/config.prod.yaml",
     "deploy": "wrangler deploy --minify --tsconfig tsconfig.worker.json",
     "deploy:staging": "wrangler deploy --env staging --minify --tsconfig tsconfig.worker.json",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings --tsconfig tsconfig.worker.json",
