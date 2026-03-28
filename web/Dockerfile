@@ -10,14 +10,18 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 # 复制根目录的依赖文件
 COPY package.json pnpm-lock.yaml ./
 
-# 复制 web 目录
-COPY web ./web
+# 复制 web 目录的依赖文件
+COPY web/package.json web/pnpm-lock.yaml ./web/
 
-# 安装依赖
+# 安装根目录依赖
+RUN pnpm install --frozen-lockfile
+
+# 安装 web 目录依赖（确保 tsc 等工具被安装）
+WORKDIR /app/web
 RUN pnpm install --frozen-lockfile
 
 # 修改 tsconfig.json 以支持构建
-RUN cd web && cat > tsconfig.json << 'EOF'
+RUN cat > tsconfig.json << 'EOF'
 {
   "compilerOptions": {
     "target": "ES2020",
@@ -54,7 +58,7 @@ RUN cd web && cat > tsconfig.json << 'EOF'
 EOF
 
 # 添加 vite-env.d.ts
-RUN cd web && cat > src/vite-env.d.ts << 'EOF'
+RUN cat > src/vite-env.d.ts << 'EOF'
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
@@ -66,8 +70,11 @@ interface ImportMeta {
 }
 EOF
 
+# 复制 web 源代码
+COPY web/ .
+
 # 构建前端
-RUN cd web && pnpm build
+RUN pnpm build
 
 # Nginx 阶段
 FROM nginx:alpine
