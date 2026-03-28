@@ -79,7 +79,7 @@ LMRouter 基于 [Hono](https://hono.dev/) 构建，可在多种环境中运行�
 内置现代化的 Web 管理界面，提供：
 
 - **💬 聊天测试** — 实时测试不同模型的对话能力
-- **🤖 模型列表** — 查看所有可用模型及其提供商
+- **🤖 模型列表** — 查看所有可用模型及其提供商（支持 25+ 个模型）
 - **🔑 API 密钥管理** — 统一管理 API 密钥
 - **📊 用量统计** — 可视化查看调用次数和 Token 消耗
 
@@ -108,10 +108,24 @@ cd lmrouter
 #### 2. 安装依赖
 
 ```bash
+# 安装后端依赖
 pnpm install
+
+# 安装前端依赖
+cd web && pnpm install && cd ..
 ```
 
-#### 3. 配置服务
+#### 3. 构建项目
+
+```bash
+# 构建前端
+cd web && pnpm build && cd ..
+
+# 构建后端
+pnpm build
+```
+
+#### 4. 配置服务
 
 复制示例配置文件并根据需要修改：
 
@@ -145,33 +159,16 @@ models:
         model: claude-3-opus-20240229
 ```
 
-#### 4. 启动后端服务
+#### 5. 启动服务
 
 ```bash
-# 开发模式（热重载）
-pnpm dev
-
-# 生产模式
-pnpm build
+# 启动整合服务（前端 + 后端）
 pnpm start
 ```
 
-后端默认运行在 `http://127.0.0.1:3000`
+服务默认运行在 `http://127.0.0.1:3000`
 
-#### 5. 启动 Web 控制台（可选）
-
-```bash
-# 进入前端目录
-cd web
-
-# 安装前端依赖
-pnpm install
-
-# 启动开发服务器
-pnpm run dev
-```
-
-Web 控制台默认运行在 `http://localhost:5173`
+访问 http://127.0.0.1:3000 即可看到 Web 管理界面。
 
 #### 6. 使用 MockLLM 测试（推荐新手）
 
@@ -185,16 +182,16 @@ pip install mockllm
 python -m mockllm --port 8000
 
 # 在另一个终端启动 LMRouter
-pnpm dev
+pnpm start
 ```
 
 MockLLM 会返回模拟的响应，方便测试和开发。
 
 ---
 
-### 方式二：Zeabur 云端部署
+### 方式二：Zeabur 云端部署（推荐）
 
-Zeabur 是一个现代化的部署平台，可以一键部署 LMRouter 到云端。
+Zeabur 是一个现代化的部署平台，支持一键部署 LMRouter 到云端。
 
 #### 📋 部署准备
 
@@ -206,39 +203,67 @@ Zeabur 是一个现代化的部署平台，可以一键部署 LMRouter 到云端
 
 访问 [Zeabur.com](https://zeabur.com) 并注册账号。
 
-#### 🔵 部署后端服务
+#### 🚀 一键部署
 
 1. 登录 Zeabur，点击 **"New Project"**（新建项目）
 2. 选择 **"Deploy from GitHub"**（从 GitHub 部署）
 3. 授权访问你的 GitHub 仓库
-4. 选择 `lmrouter` 仓库
-5. Root Path 设置为 `/`（后端根目录）
-6. 配置环境变量（可选）：
-   - `NODE_ENV`: `production`
-   - `PORT`: `3000`
-7. 点击 **"Deploy"**（部署）
+4. 选择 `lmrouter` 仓库和 `staging` 分支
+5. Zeabur 会自动识别根目录的 `Dockerfile`
+6. 点击 **"Deploy"**（部署）
 
 Zeabur 会自动：
-- 检测 `package.json`
-- 运行 `pnpm install` 和 `pnpm run build`
+- 检测 Dockerfile
+- 构建前端（React 应用）
+- 构建后端（Node.js 服务）
+- 整合到单一容器
 - 启动服务（默认端口 3000）
 
-#### 🟢 部署前端服务
+#### ⚙️ 配置域名和端口
 
-1. 在同一项目中点击 **"Add Service"**（添加服务）
-2. 选择 **"Git"**
-3. Root Path 设置为 `/web`（前端目录）
-4. 添加环境变量：
-   - `VITE_API_BASE_URL`: 后端服务的 URL（例如：`https://lmrouter-api.zeabur.app`）
-5. 点击 **"Deploy"**
+部署完成后：
+
+1. 进入服务的 **"网路"**（Networking）分页
+2. 确认 **公开端口** 设置为 `3000`
+3. 确认 **协议** 设置为 `HTTP`
+4. 确认 **域名绑定** 正确（应该自动生成）
+
+#### 🌍 环境变量配置（可选）
+
+在服务的 **"变量"**（Variables）分页添加：
+
+```bash
+NODE_ENV=production
+PORT=3000
+OPENAI_API_KEY=sk-your-key         # 可选：OpenAI API 密钥
+ANTHROPIC_API_KEY=sk-ant-your-key # 可选：Anthropic API 密钥
+```
 
 #### ✅ 验证部署
 
-1. 等待两个服务都显示 **Running** 状态
-2. 点击前端服务的 URL 访问 Web 控制台
+1. 等待服务显示 **Running** 状态
+2. 点击生成的域名访问 Web 控制台
 3. 测试聊天功能和模型列表
 
-详细的部署指南请参考 [DEPLOYMENT.md](./DEPLOYMENT.md)
+#### 🐛 常见问题排查
+
+**问题 1：502 Bad Gateway**
+
+- **原因**：域名端口绑定错误
+- **解决**：
+  1. 在"网路"分页删除现有域名绑定
+  2. 等待 1 分钟让 Zeabur 自动创建新的绑定
+  3. 确认绑定到端口 `3000` 而不是 `web`
+
+**问题 2：favicon.ico 404/502**
+
+- **原因**：浏览器自动请求 favicon.ico
+- **解决**：已在代码中添加处理（返回 204 No Content）
+
+**问题 3：模型列表为空**
+
+- **原因**：使用了错误的配置文件
+- **解决**：确认使用 `config/config.prod.yaml`（包含 25 个模型）
 
 ---
 
@@ -246,8 +271,8 @@ Zeabur 会自动：
 
 ### 访问地址
 
-- **本地开发**：http://localhost:5173
-- **生产环境**：你的 Zeabur 前端 URL
+- **本地开发**：http://127.0.0.1:3000
+- **Zeabur 部署**：你的 Zeabur 域名（如：https://lmrouter.zeabur.app/）
 
 ### 功能介绍
 
@@ -261,14 +286,12 @@ Zeabur 会自动：
 4. 查看 AI 的回复
 
 **支持的模型包括**：
-- GPT 系列（gpt-4-turbo、gpt-3.5-turbo）
-- Claude 系列（claude-3-opus、claude-3-sonnet）
-- Gemini 系列（gemini-2.0-flash）
-- DeepSeek、Qwen、Kimi 等国内模型
+- 国外模型：GPT-4/Claude/Gemini/DeepSeek 等
+- 国内模型：豆包/通义/Kimi/智谱/文心/混元 等
 
 #### 2. 模型列表
 
-查看所有可用的 AI 模型：
+查看所有可用的 AI 模型（25+ 个）：
 
 - 显示模型名称和提供商
 - 支持搜索过滤
@@ -301,19 +324,19 @@ Zeabur 会自动：
 | `NODE_ENV` | 运行环境 | `development` |
 | `PORT` | 服务端口 | `3000` |
 | `LMROUTER_CONFIG` | Base64 编码的配置文件 | - |
+| `OPENAI_API_KEY` | OpenAI API 密钥 | - |
+| `ANTHROPIC_API_KEY` | Anthropic API 密钥 | - |
 
 ### 配置文件结构
 
 ```yaml
 server:
-  host: 127.0.0.1
+  host: 0.0.0.0          # 生产环境使用 0.0.0.0
   port: 3000
-  logging: dev
+  logging: production    # 生产环境使用 production
 
 auth:
-  enabled: false          # 是否启用认证
-  better_auth:
-    trusted_origins: []
+  enabled: false         # 是否启用认证
 
 providers:
   # 提供商配置
@@ -363,7 +386,7 @@ providers:
 ```bash
 curl http://127.0.0.1:3000/openai/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer your-api-key" \
+  -H "Authorization: Bearer sk-test-key-1" \
   -d '{
     "model": "gpt-4-turbo",
     "messages": [
@@ -376,7 +399,7 @@ curl http://127.0.0.1:3000/openai/v1/chat/completions \
 
 ```bash
 curl http://127.0.0.1:3000/v1/models \
-  -H "Authorization: Bearer your-api-key"
+  -H "Authorization: Bearer sk-test-key-1"
 ```
 
 ### Python 示例
@@ -386,7 +409,7 @@ import openai
 
 client = openai.OpenAI(
     base_url="http://127.0.0.1:3000/openai/v1",
-    api_key="your-api-key"
+    api_key="sk-test-key-1"
 )
 
 response = client.chat.completions.create(
@@ -406,7 +429,7 @@ import OpenAI from 'openai';
 
 const client = new OpenAI({
   baseURL: 'http://127.0.0.1:3000/openai/v1',
-  apiKey: 'your-api-key'
+  apiKey: 'sk-test-key-1'
 });
 
 const response = await client.chat.completions.create({
@@ -430,22 +453,45 @@ lmrouter/
 │   ├── adapters/          # AI 模型适配器
 │   ├── middlewares/       # 中间件
 │   ├── models/            # 数据模型
-│   └── index.ts           # 入口文件
-├── web/                   # 前端源代码（Web Console）
+│   ├── utils/             # 工具函数
+│   └── index.ts          # 入口文件
+├── web/                   # 前端源代码（React + Vite）
 │   ├── src/
 │   │   ├── api/          # API 客户端
 │   │   ├── components/   # React 组件
 │   │   ├── pages/        # 页面组件
 │   │   └── types/        # TypeScript 类型
-│   ├── Dockerfile        # Docker 配置
-│   └── nginx.conf        # Nginx 配置
+│   ├── dist/             # 前端构建产物
+│   ├── index.html        # HTML 模板
+│   ├── package.json      # 前端依赖
+│   └── vite.config.ts    # Vite 配置
 ├── config/               # 配置文件目录
-│   └── config.yaml       # LMRouter 配置
-├── mock/                 # MockLLM 测试数据
+│   ├── config.yaml       # 开发环境配置
+│   └── config.prod.yaml  # 生产环境配置（Zeabur 使用）
+├── Dockerfile            # 整合的前后端构建
 ├── package.json          # 后端依赖
-├── zeabur.yaml          # Zeabur 部署配置
 └── README.md            # 本文档
 ```
+
+### 架构说明
+
+**前后端整合架构**：
+
+- 后端 Node.js 服务（Hono 框架）
+- 直接提供前端静态文件
+- 单一端口（3000）服务所有请求
+- 支持 SPA 路由
+
+**路由优先级**：
+
+1. `/assets/*` — 前端静态资源
+2. `/favicon.ico` — 返回 204 No Content
+3. `/api/health` — 健康检查
+4. `/anthropic/*` — Anthropic API
+5. `/openai/*` — OpenAI API
+6. `/v1/*` — 通用 API
+7. `/` — 前端 HTML
+8. `/*` — SPA fallback（返回 index.html）
 
 ### 可用脚本
 
@@ -455,8 +501,10 @@ pnpm dev              # 启动开发服务器（热重载）
 pnpm dev:worker       # 启动 Cloudflare Workers 开发服务器
 
 # 构建
-pnpm build            # 构建项目
-pnpm start            # 启动生产服务器
+pnpm build            # 构建项目（前端 + 后端）
+
+# 运行
+pnpm start            # 启动生产服务器（整合服务）
 
 # 数据库
 pnpm db:generate      # 生成数据库迁移
@@ -499,40 +547,39 @@ pnpm lint:fix         # 自动修复代码风格
    lsof -i :3000
    ```
 
-### 问题：前端无法连接后端
+### 问题：前端页面显示 502
 
-**解决方案：**
+**Zeabur 部署特有问题：**
 
-1. 确认后端服务正在运行
-   ```bash
-   curl http://127.0.0.1:3000
-   ```
+1. **检查域名端口绑定**
+   - 进入"网路"分页
+   - 确认域名绑定到端口 `3000`（不是 `web`）
+   - 如果错误，删除绑定并重新创建
 
-2. 检查 Vite 代理配置（`web/vite.config.ts`）
+2. **查看实时日志**
+   - 打开"日志"分页
+   - 访问网站，观察是否有新请求记录
+   - 如果没有记录，说明网关配置有问题
 
-3. 查看浏览器控制台是否有 CORS 错误
+3. **重启服务**
+   - 点击"重新部署"
+   - 等待 3-5 分钟
 
 ### 问题：模型列表为空
 
 **解决方案：**
 
-1. 检查 `config/config.yaml` 配置是否正确
+1. 确认使用的是 `config/config.prod.yaml`（包含 25 个模型）
+2. 检查后端日志是否有错误
+3. 验证前端已正确构建（`web/dist/` 目录存在）
 
-2. 确认提供商的 API 密钥有效
-
-3. 查看后端日志是否有错误信息
-
-### 问题：Zeabur 部署失败
+### 问题：favicon.ico 404/502
 
 **解决方案：**
 
-1. 查看 Zeabur 的构建日志
-
-2. 确认 `package.json` 包含正确的启动脚本
-
-3. 检查环境变量配置
-
-更多故障排查信息请参考 [DEPLOYMENT.md](./DEPLOYMENT.md)
+- 已在代码中添加处理（`src/app.ts`）
+- 返回 204 No Content 而不是 HTML
+- 如果仍有问题，清除浏览器缓存
 
 ---
 
