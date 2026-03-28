@@ -3,9 +3,6 @@
 # ===========================
 FROM node:22-alpine AS builder
 
-# 添加构建时间戳标签（强制重新构建）
-ARG BUILD_DATE=unknown
-
 WORKDIR /app
 
 # 安装 pnpm
@@ -25,6 +22,13 @@ ARG VITE_API_BASE_URL=""
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 RUN pnpm build
 
+# 验证构建产物
+RUN echo "=== Listing dist directory ===" && \
+    ls -lah dist/ && \
+    echo "=== Checking index.html ===" && \
+    head -20 dist/index.html && \
+    echo "=== Build verification complete ==="
+
 # ===========================
 # 第二阶段：Nginx 服务器
 # ===========================
@@ -37,7 +41,14 @@ RUN rm -rf /usr/share/nginx/html/* && \
 # 复制构建产物
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# 直接内联 nginx 配置（不依赖外部文件）
+# 验证文件已复制
+RUN echo "=== Verifying copied files ===" && \
+    ls -lah /usr/share/nginx/html/ && \
+    echo "=== Checking index.html content ===" && \
+    head -20 /usr/share/nginx/html/index.html && \
+    echo "=== File copy verification complete ==="
+
+# 直接内联 nginx 配置
 RUN cat > /etc/nginx/conf.d/default.conf << 'EOF'
 server {
     listen 80;
@@ -87,9 +98,10 @@ server {
 }
 EOF
 
-# 验证配置文件存在并可读
-RUN test -f /etc/nginx/conf.d/default.conf && \
-    echo "Nginx config file exists" && \
+# 验证配置文件
+RUN echo "=== Verifying nginx config ===" && \
+    cat /etc/nginx/conf.d/default.conf && \
+    echo "=== Testing nginx config ===" && \
     nginx -t
 
 EXPOSE 80
