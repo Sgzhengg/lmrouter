@@ -13,9 +13,9 @@ services:
         type: HTTP
     env:
       # 构建时设置后端 API URL
-      # 使用 Zeabur 服务发现，后端服务名为 lmrouter-gires
+      # 使用 localhost 因为 Nginx 会在同一容器内代理到后端
       - key: VITE_API_BASE_URL
-        value: https://lmrouter-gires.zeabur.app
+        value: http://localhost
     # 健康检查
     healthCheck:
       http:

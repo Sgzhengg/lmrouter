@@ -5,9 +5,15 @@ name: lmrouter-api
 services:
   - type: web
     name: api
-    runtime: node
-    buildCommand: pnpm install && pnpm run build
-    startCommand: pnpm run start:prod
+    runtime: docker
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    ports:
+      - port: 3000
+        type: HTTP
+    # 域名配置 - 绑定公开域名以便前端可以访问
+    domainMappings:
+      - domain: lmrouter-gires.zeabur.app
     env:
       - key: NODE_ENV
         value: production
@@ -18,10 +24,6 @@ services:
       #   value: sk-your-openai-key
       # - key: ANTHROPIC_API_KEY
       #   value: sk-ant-your-anthropic-key
-    # 端口配置
-    ports:
-      - port: 3000
-        type: HTTP
     # 健康检查
     healthCheck:
       http:

@@ -42,9 +42,9 @@ server {
     gzip_min_length 1024;
     gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml+rss application/json application/javascript;
 
-    # API 代理 - 代理后端 API 请求
+    # API 代理 - 代理后端 API 请求到 Zeabur 内部服务
     location /openai/ {
-        proxy_pass https://lmrouter-gires.zeabur.app;
+        proxy_pass http://lmrouter-gires:3000;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -55,7 +55,7 @@ server {
     }
 
     location /v1/ {
-        proxy_pass https://lmrouter-gires.zeabur.app;
+        proxy_pass http://lmrouter-gires:3000;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
