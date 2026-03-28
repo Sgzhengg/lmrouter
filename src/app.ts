@@ -13,6 +13,9 @@ import v1Router from "./routes/v1.js";
 import type { ContextEnv } from "./types/hono.js";
 import { getConfig, loadConfigFromCloudflareKV } from "./utils/config.js";
 import { getUptime } from "./utils/utils.js";
+import { readFileSync, existsSync } from "fs";
+import { join } from "path";
+import { extname } from "path";
 
 const app = new Hono<ContextEnv>();
 
@@ -32,9 +35,46 @@ app.use((c, next) => {
     credentials: true,
   })(c, next);
 });
-app.use(auth);
 
-app.get("/", (c) => {
+// 获取文件的 Content-Type
+const getContentType = (filePath: string): string => {
+  const ext = extname(filePath);
+  const mimeTypes: Record<string, string> = {
+    ".js": "text/javascript",
+    ".css": "text/css",
+    ".html": "text/html",
+    ".json": "application/json",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".svg": "image/svg+xml",
+    ".ico": "image/x-icon",
+    ".woff": "font/woff",
+    ".woff2": "font/woff2",
+    ".ttf": "font/ttf",
+    ".eot": "application/vnd.ms-fontobject",
+  };
+  return mimeTypes[ext] || "application/octet-stream";
+};
+
+// 静态文件服务 - 服务前端构建产物
+app.get("/assets/*", (c) => {
+  const requestPath = c.req.path as string;
+  const filePath = join(process.cwd(), "web/dist", requestPath);
+  if (existsSync(filePath)) {
+    const content = readFileSync(filePath);
+    const mime = getContentType(filePath);
+    return c.newResponse(content, 200, {
+      "Content-Type": mime,
+      "Cache-Control": "public, max-age=31536000, immutable",
+    });
+  }
+  return c.json({ error: { message: "File not found" } }, 404);
+});
+
+// API 健康检查
+app.get("/api/health", auth, (c) => {
   return c.json({
     message: "Welcome to LMRouter!",
     uptime: getUptime(),
@@ -42,9 +82,42 @@ app.get("/", (c) => {
   });
 });
 
+// API 路由（需要认证）
 app.route("/anthropic", anthropicRouter);
 app.route("/openai", openaiRouter);
 app.route("/v1", v1Router);
+
+// SPA 路由 - 返回前端 HTML（不需要认证）
+app.get("/", (c) => {
+  const indexPath = join(process.cwd(), "web/dist/index.html");
+  if (existsSync(indexPath)) {
+    const html = readFileSync(indexPath, "utf-8");
+    return c.html(html);
+  }
+  // 如果前端未构建，返回 JSON 信息
+  return c.json({
+    message: "Welcome to LMRouter!",
+    uptime: getUptime(),
+    apis_available: ["anthropic", "openai", "v1"],
+    note: "Frontend not built. To serve the UI, run 'pnpm build' in the web/ directory.",
+  });
+});
+
+// SPA fallback - 对于所有其他非 API 路由，返回 index.html
+app.get("/*", (c) => {
+  const requestPath = c.req.path as string;
+  // 跳过 API 路由
+  if (requestPath.startsWith("/api/") || requestPath.startsWith("/openai/") || requestPath.startsWith("/v1/") || requestPath.startsWith("/anthropic/") || requestPath.startsWith("/assets/")) {
+    return c.json({ error: { message: "Not Found" } }, 404);
+  }
+
+  const indexPath = join(process.cwd(), "web/dist/index.html");
+  if (existsSync(indexPath)) {
+    const html = readFileSync(indexPath, "utf-8");
+    return c.html(html);
+  }
+  return c.json({ error: { message: "Frontend not built" } }, 404);
+});
 
 app.onError((err, c) => {
   console.error(err.stack);
