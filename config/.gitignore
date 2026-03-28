@@ -1,2 +1,7 @@
-*.yaml
+# 忽略本地配置文件
+config.yaml
+
+# 允许生产和示例配置
+*.prod.yaml
+*.example.yaml
 !*.example.yaml
