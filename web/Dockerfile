@@ -79,13 +79,14 @@ RUN pnpm build
 # Nginx 阶段
 FROM nginx:alpine
 
-WORKDIR /app
+# 安装 envsubst
+RUN apk add --no-cache gettext
 
 # 复制构建产物
 COPY --from=builder /app/web/dist /usr/share/nginx/html
 
-# 创建 Nginx 配置
-RUN cat > /etc/nginx/conf.d/default.conf << 'EOF'
+# 创建 Nginx 配置模板
+RUN cat > /etc/nginx/templates/default.conf.template << 'EOF'
 server {
     listen 80;
     server_name _;
@@ -100,11 +101,7 @@ server {
 
     # API 代理 - 使用环境变量
     location /openai/ {
-        set $backend_url "${BACKEND_URL}";
-        if ($backend_url = "") {
-            set $backend_url "http://localhost:3000";
-        }
-        proxy_pass $backend_url;
+        proxy_pass ${BACKEND_URL}/openai/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
@@ -115,11 +112,7 @@ server {
     }
 
     location /v1/ {
-        set $backend_url "${BACKEND_URL}";
-        if ($backend_url = "") {
-            set $backend_url "http://localhost:3000";
-        }
-        proxy_pass $backend_url;
+        proxy_pass ${BACKEND_URL}/v1/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
@@ -138,4 +131,5 @@ EOF
 
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+# 使用 shell 启动脚本，处理环境变量
+CMD ["/bin/sh", "-c", "envsubst '\\$BACKEND_URL' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"]
