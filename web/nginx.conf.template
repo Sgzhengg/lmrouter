@@ -17,7 +17,7 @@ server {
 
     # API 代理
     location /openai/ {
-        proxy_pass $$VITE_API_BASE_URL/openai/;
+        proxy_pass ${VITE_API_BASE_URL}/openai/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -29,7 +29,7 @@ server {
     }
 
     location /v1/ {
-        proxy_pass $$VITE_API_BASE_URL/v1/;
+        proxy_pass ${VITE_API_BASE_URL}/v1/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';

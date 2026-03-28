@@ -32,8 +32,11 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # 复制 nginx 配置模板
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 
+# 复制启动脚本
+COPY start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
+
 EXPOSE 80
 
-# 使用 envsubst 替换环境变量并启动 nginx
-CMD sh -c "envsubst '$$VITE_API_BASE_URL' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
-
+# 使用启动脚本
+CMD ["/usr/local/bin/start.sh"]
