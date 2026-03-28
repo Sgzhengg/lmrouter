@@ -87,6 +87,11 @@ app.route("/anthropic", anthropicRouter);
 app.route("/openai", openaiRouter);
 app.route("/v1", v1Router);
 
+// Favicon 处理 - 返回 204 No Content 避免浏览器报错
+app.get("/favicon.ico", (c) => {
+  return c.newResponse(null, 204);
+});
+
 // SPA 路由 - 返回前端 HTML（不需要认证）
 app.get("/", (c) => {
   const indexPath = join(process.cwd(), "web/dist/index.html");
