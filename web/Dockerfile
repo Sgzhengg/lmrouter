@@ -3,6 +3,9 @@
 # ===========================
 FROM node:22-alpine AS builder
 
+# 添加构建时间戳标签（强制重新构建）
+ARG BUILD_DATE=unknown
+
 WORKDIR /app
 
 # 安装 pnpm
