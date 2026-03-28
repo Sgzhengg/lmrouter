@@ -71,7 +71,7 @@ interface ImportMeta {
 EOF
 
 # 复制 web 源代码
-COPY web/ .
+COPY . .
 
 # 构建前端（支持构建时环境变量）
 ARG VITE_API_BASE_URL=""
