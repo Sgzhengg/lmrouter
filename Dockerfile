@@ -24,7 +24,7 @@ RUN pnpm build
 RUN echo "=== Frontend build complete ===" && \
     ls -lah dist/ && \
     echo "=== index.html exists ===" && \
-    test -f dist/index.html && echo "✓ Frontend built successfully"
+    test -f dist/index.html && echo "✓ Frontend built successfully" || echo "✗ Frontend build failed"
 
 # ===========================
 # 第二阶段：构建后端
@@ -48,6 +48,11 @@ COPY tsconfig.json ./
 
 # 编译后端
 RUN pnpm build
+
+# 验证后端构建产物
+RUN echo "=== Backend build complete ===" && \
+    ls -lah dist/ && \
+    test -f dist/index.js && echo "✓ Backend built successfully" || echo "✗ Backend build failed"
 
 # ===========================
 # 第三阶段：最终镜像
@@ -86,5 +91,9 @@ RUN echo "=== Verifying integrated build ===" && \
 # 暴露端口
 EXPOSE 3000
 
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
 # 启动后端服务（会自动提供前端静态文件）
-CMD ["node", "dist/index.js", "config/config.prod.yaml"]
+CMD ["sh", "-c", "node dist/index.js config/config.prod.yaml"]
