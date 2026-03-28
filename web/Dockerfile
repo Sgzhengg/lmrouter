@@ -87,7 +87,7 @@ COPY --from=builder /app/web/dist /usr/share/nginx/html
 # 创建 Nginx 配置
 RUN cat > /etc/nginx/conf.d/default.conf << 'EOF'
 server {
-    listen 8080;
+    listen 80;
     server_name _;
     root /usr/share/nginx/html;
     index index.html;
@@ -136,6 +136,6 @@ server {
 }
 EOF
 
-EXPOSE 8080
+EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]

@@ -9,7 +9,7 @@ services:
     dockerContext: .
     dockerfilePath: Dockerfile
     ports:
-      - port: 8080
+      - port: 80
         type: HTTP
     env:
       # 后端 API 地址 - Zeabur 会自动替换为实际的后端服务地址
@@ -20,7 +20,7 @@ services:
     healthCheck:
       http:
         path: /
-        port: 8080
+        port: 80
     # 资源限制
     resources:
       cpu: 0.5
