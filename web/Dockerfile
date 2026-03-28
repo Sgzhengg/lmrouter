@@ -44,9 +44,16 @@ RUN rm -rf /usr/share/nginx/html/* && \
 # 复制构建产物
 COPY --from=builder /app/dist /usr/share/nginx/html
 
+# 设置正确的文件权限 - 确保所有用户可读
+RUN chmod -R 755 /usr/share/nginx/html && \
+    chmod 644 /usr/share/nginx/html/*.html && \
+    chmod -R 644 /usr/share/nginx/html/assets/
+
 # 验证文件已复制
 RUN echo "=== Verifying copied files ===" && \
     ls -lah /usr/share/nginx/html/ && \
+    echo "=== Checking permissions ===" && \
+    ls -la /usr/share/nginx/html/ && \
     echo "=== Checking index.html content ===" && \
     head -20 /usr/share/nginx/html/index.html && \
     echo "=== File copy verification complete ==="
@@ -58,6 +65,9 @@ server {
     server_name _;
     root /usr/share/nginx/html;
     index index.html;
+
+    # 确保可以访问所有文件
+    autoindex off;
 
     # 启用 gzip
     gzip on;
@@ -106,6 +116,10 @@ RUN echo "=== Verifying nginx config ===" && \
     cat /etc/nginx/conf.d/default.conf && \
     echo "=== Testing nginx config ===" && \
     nginx -t
+
+# 确保 nginx 可以读取文件
+RUN echo "=== Checking file ownership ===" && \
+    ls -la /usr/share/nginx/html/
 
 EXPOSE 80
 
