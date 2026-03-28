@@ -73,56 +73,38 @@ EOF
 # 复制 web 源代码
 COPY web/ .
 
-# 构建前端
+# 构建前端（支持构建时环境变量）
+ARG VITE_API_BASE_URL=""
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 RUN pnpm build
 
-# Nginx 阶段
+# Nginx 阶段 - 纯静态托管
 FROM nginx:alpine
-
-# 安装 envsubst
-RUN apk add --no-cache gettext
 
 # 复制构建产物
 COPY --from=builder /app/web/dist /usr/share/nginx/html
 
-# 创建 Nginx 配置模板
-RUN cat > /etc/nginx/templates/default.conf.template << 'EOF'
+# 创建简单的 Nginx 配置（纯静态，无代理）
+RUN cat > /etc/nginx/conf.d/default.conf << 'EOF'
 server {
     listen 80;
     server_name _;
     root /usr/share/nginx/html;
     index index.html;
 
-    # 静态文件缓存
+    # 启用 gzip 压缩
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml+rss application/json application/javascript;
+
+    # 静态资源缓存
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
     }
 
-    # API 代理 - 使用环境变量
-    location /openai/ {
-        proxy_pass ${BACKEND_URL}/openai/;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /v1/ {
-        proxy_pass ${BACKEND_URL}/v1/;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # SPA 路由支持
+    # SPA 路由支持 - 所有路由返回 index.html
     location / {
         try_files $uri $uri/ /index.html;
     }
@@ -131,5 +113,4 @@ EOF
 
 EXPOSE 80
 
-# 使用 shell 启动脚本，处理环境变量
-CMD ["/bin/sh", "-c", "envsubst '\\$BACKEND_URL' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"]
+CMD ["nginx", "-g", "daemon off;"]
