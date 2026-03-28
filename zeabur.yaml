@@ -1,12 +1,12 @@
 # Zeabur 部署配置
-# 前端服务配置（部署 web 目录）
+# 注意：Zeabur 不支持 dockerContext，所有服务都从根目录构建
+
 services:
-  # 前端服务
+  # 前端服务 - 使用 Dockerfile.frontend（从根目录构建 web 目录）
   - type: web
     name: frontend
     runtime: docker
-    dockerContext: ./web
-    dockerfilePath: web/Dockerfile
+    dockerfilePath: Dockerfile.frontend
     ports:
       - port: 80
         type: HTTP
@@ -21,11 +21,10 @@ services:
       cpu: 0.5
       memory: 512
 
-  # 后端服务
+  # 后端服务 - 使用根目录的 Dockerfile
   - type: web
     name: api
     runtime: docker
-    dockerContext: .
     dockerfilePath: Dockerfile
     ports:
       - port: 3000
