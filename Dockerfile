@@ -12,5 +12,6 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile --prod && pnpm store prune
 COPY --from=base /app/dist ./dist
+COPY --from=base /app/config ./config
 EXPOSE 3000
 CMD ["pnpm", "start"]
