@@ -3,6 +3,9 @@
 # ===========================
 FROM node:22-alpine AS builder
 
+# 强制重新构建标记 - v2
+LABEL build.version="diagnostic-v2"
+
 WORKDIR /app
 
 # 安装 pnpm
