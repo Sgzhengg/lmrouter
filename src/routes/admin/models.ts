@@ -7,10 +7,11 @@ import type {
   CreateModelRequest,
   AddProviderToModelRequest,
 } from "../../types/account-pool.js";
+import type { ContextEnv } from "../../types/hono.js";
 import { AccountPoolDatabase } from "../../utils/account-pool-db.js";
 import { getDb } from "../../utils/database.js";
 
-const app = new Hono();
+const app = new Hono<ContextEnv>();
 
 /**
  * 获取所有模型
@@ -125,7 +126,7 @@ app.post("/models/:id/providers", async (c) => {
 
   // 检查是否已经添加过
   const existing = await db.getModelProviders(modelId);
-  const alreadyAdded = existing.find((mp) => mp.providerId === data.providerId);
+  const alreadyAdded = existing.find((mp: any) => mp.providerId === data.providerId);
   if (alreadyAdded) {
     throw new HTTPException(400, {
       message: "Provider already added to this model",
@@ -159,7 +160,7 @@ app.put("/models/:id/providers/:providerId", async (c) => {
 
   // 获取现有的 model provider
   const existing = await db.getModelProviders(modelId);
-  const modelProvider = existing.find((mp) => mp.providerId === providerId);
+  const modelProvider = existing.find((mp: any) => mp.providerId === providerId);
 
   if (!modelProvider) {
     throw new HTTPException(404, {
@@ -182,7 +183,7 @@ app.delete("/models/:id/providers/:providerId", async (c) => {
 
   // 获取现有的 model provider
   const existing = await db.getModelProviders(modelId);
-  const modelProvider = existing.find((mp) => mp.providerId === providerId);
+  const modelProvider = existing.find((mp: any) => mp.providerId === providerId);
 
   if (!modelProvider) {
     throw new HTTPException(404, {
@@ -206,7 +207,7 @@ app.patch("/models/:id/providers/:providerId/status", async (c) => {
 
   // 获取现有的 model provider
   const existing = await db.getModelProviders(modelId);
-  const modelProvider = existing.find((mp) => mp.providerId === providerId);
+  const modelProvider = existing.find((mp: any) => mp.providerId === providerId);
 
   if (!modelProvider) {
     throw new HTTPException(404, {

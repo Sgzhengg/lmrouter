@@ -86,12 +86,18 @@ export class PerformanceMonitor {
     const stats = this.calculateStats(recentMetrics);
 
     return {
-      providerId: key,
-      timeRange: {
-        start: new Date(now - timeRangeMs),
-        end: new Date(now),
-      },
-      ...stats,
+      providerId,
+      accountId,
+      timeRange,
+      avgTtftMs: stats.avgTtftMs,
+      avgThroughput: stats.avgThroughput,
+      avgLatencyMs: stats.avgLatencyMs,
+      successRate: stats.successRate,
+      uptime: stats.uptime,
+      errorRate: stats.errorRate,
+      totalRequests: stats.totalRequests,
+      throughputTps: stats.throughputTps,
+      totalCost: stats.totalCost,
     };
   }
 
@@ -206,10 +212,10 @@ export class PerformanceMonitor {
       comparisons.push({
         providerId: provider.providerId,
         accountId: provider.accountId,
-        avgTtftMs: stats.avgTtftMs,
-        avgCostPer1kTokens: stats.totalCost / stats.totalRequests,
-        successRate: stats.successRate,
-        totalRequests: stats.totalRequests,
+        avgTtftMs: stats.avgTtftMs || 500,
+        avgCostPer1kTokens: (stats.totalCost || 0) / (stats.totalRequests || 1),
+        successRate: stats.successRate || 95,
+        totalRequests: stats.totalRequests || 0,
       });
     }
 
@@ -221,16 +227,17 @@ export class PerformanceMonitor {
    */
   private calculateStats(
     metrics: PerformanceMetricData[]
-  ): Omit<ProviderStats, "providerId" | "timeRange"> {
+  ): Omit<ProviderStats, "providerId" | "accountId" | "timeRange"> {
     if (metrics.length === 0) {
       return {
-        totalRequests: 0,
-        successRate: 100,
         avgTtftMs: 500,
         avgLatencyMs: 1000,
         throughputTps: 50,
         totalCost: 0,
+        totalRequests: 0,
+        successRate: 100,
         errorRate: 0,
+        uptime: 99.5,
       };
     }
 
@@ -275,6 +282,7 @@ export class PerformanceMonitor {
       throughputTps,
       totalCost: 0, // TODO: 计算总成本
       errorRate,
+      uptime: 99.5, // TODO: 计算实际可用性
     };
   }
 

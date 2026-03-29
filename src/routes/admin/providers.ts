@@ -11,10 +11,11 @@ import type {
   TestProviderConnectionRequest,
   TestProviderConnectionResponse,
 } from "../../types/account-pool.js";
+import type { ContextEnv } from "../../types/hono.js";
 import { AccountPoolDatabase } from "../../utils/account-pool-db.js";
 import { getDb } from "../../utils/database.js";
 
-const app = new Hono();
+const app = new Hono<ContextEnv>();
 
 /**
  * 获取所有供应商

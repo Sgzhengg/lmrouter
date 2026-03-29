@@ -237,13 +237,13 @@ export class AccountPoolDatabase {
     const logs = await this.getRecentAccountLogs(accountId, timeRange);
 
     const total = logs.length;
-    const successful = logs.filter(l => l.status === "success").length;
-    const errors = logs.filter(l => l.status === "error").length;
-    const rateLimited = logs.filter(l => l.status === "rate_limited").length;
-    const banned = logs.filter(l => l.status === "banned").length;
+    const successful = logs.filter((l: any) => l.status === "success").length;
+    const errors = logs.filter((l: any) => l.status === "error").length;
+    const rateLimited = logs.filter((l: any) => l.status === "rate_limited").length;
+    const banned = logs.filter((l: any) => l.status === "banned").length;
 
-    const avgLatency = logs.reduce((sum, l) => sum + (l.latencyMs || 0), 0) / total;
-    const totalCost = logs.reduce((sum, l) => sum + Number(l.cost || 0), 0);
+    const avgLatency = logs.reduce((sum: number, l: any) => sum + (l.latencyMs || 0), 0) / total;
+    const totalCost = logs.reduce((sum: number, l: any) => sum + Number(l.cost || 0), 0);
 
     return {
       total,

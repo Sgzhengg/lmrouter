@@ -253,13 +253,12 @@ export const userTenants = pgTable(
       .default(sql`gen_random_uuid()`)
       .primaryKey(),
     userId: text("user_id")
-      .notNull()
-      .references(() => sql`user.id`, { onDelete: "cascade" }),
+      .notNull(),
     tenantId: text("tenant_id")
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
     role: text("role").notNull(), // 'owner', 'admin', 'member'
-    invitedBy: text("invited_by").references(() => sql`user.id`),
+    invitedBy: text("invited_by"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => ({
