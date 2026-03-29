@@ -37,7 +37,12 @@
     "auth:generate": "LMROUTER_CONFIG=$(base64 -w0 config/config.yaml) npx @better-auth/cli generate && mv auth-schema.ts src/models/auth.ts",
     "db:generate": "NODE_OPTIONS='--import tsx' LMROUTER_CONFIG=$(base64 -w0 config/config.yaml) drizzle-kit generate",
     "db:migrate": "LMROUTER_CONFIG=$(base64 -w0 config/config.yaml) drizzle-kit migrate",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "test": "vitest",
+    "test:unit": "vitest tests/unit/",
+    "test:integration": "vitest tests/integration/",
+    "test:mockllm": "tsx tests/test-with-mockllm.ts",
+    "test:routing": "tsx tests/run-routing-tests.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.57.0",
@@ -62,10 +67,12 @@
   "devDependencies": {
     "@types/json-logic-js": "^2.0.8",
     "@types/node": "^20.19.13",
+    "@vitest/ui": "^4.1.2",
     "drizzle-kit": "^0.31.4",
     "prettier": "^3.6.2",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
+    "vitest": "^4.1.2",
     "wrangler": "^4.34.0"
   }
 }

@@ -8,6 +8,7 @@ import { HTTPException } from "hono/http-exception";
 import { getConfig } from "./config.js";
 import * as authSchema from "../models/auth.js";
 import * as billingSchema from "../models/billing.js";
+import * as accountPoolSchema from "../models/account-pool.js";
 import type { ContextEnv } from "../types/hono.js";
 
 let dbCache: ReturnType<typeof drizzle> | null = null;
@@ -24,8 +25,12 @@ export const getDb = (c?: Context<ContextEnv>): ReturnType<typeof drizzle> => {
       schema: {
         ...authSchema,
         ...billingSchema,
+        ...accountPoolSchema,
       },
     });
   }
   return dbCache;
 };
+
+// 导出 schema 类型供使用
+export { accountPoolSchema };

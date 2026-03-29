@@ -1,0 +1,109 @@
+# LMRouter 测试环境配置
+# 用于测试智能路由引擎功能
+
+server:
+  host: 0.0.0.0
+  port: 3000
+  logging: debug
+
+auth:
+  enabled: false
+
+# ============================================
+# 测试用提供商配置
+# ============================================
+providers:
+  # OpenAI 官方
+  openai-official:
+    type: openai
+    base_url: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+    api_key: ${OPENAI_API_KEY:-}
+    priority: 1
+    description: "OpenAI 官方 API"
+
+  # 模拟的 Azure OpenAI
+  azure-openai:
+    type: openai
+    base_url: ${AZURE_OPENAI_BASE_URL:-https://dummy-azure.openai.com/v1}
+    api_key: ${AZURE_OPENAI_API_KEY:-dummy-key}
+    priority: 2
+    description: "Azure OpenAI (模拟)"
+
+  # 模拟的第三方代理商
+  reseller-cheap:
+    type: openai
+    base_url: ${RESELLER_BASE_URL:-https://dummy-reseller.com/v1}
+    api_key: ${RESELLER_API_KEY:-dummy-key}
+    priority: 3
+    description: "第三方代理商（便宜）"
+
+# ============================================
+# 模型配置
+# ============================================
+models:
+  # GPT-4 Turbo（官方价格）
+  gpt-4-turbo:
+    providers:
+      - provider: openai-official
+        model: gpt-4-turbo-preview
+        pricing_input: 0.01
+        pricing_output: 0.03
+        priority: 1
+        weight: 100
+
+      - provider: azure-openai
+        model: gpt-4-turbo
+        pricing_input: 0.012
+        pricing_output: 0.035
+        priority: 2
+        weight: 90
+
+      - provider: reseller-cheap
+        model: gpt-4-turbo
+        pricing_input: 0.008
+        pricing_output: 0.025
+        priority: 3
+        weight: 80
+
+  # GPT-3.5 Turbo（便宜）
+  gpt-3.5-turbo:
+    providers:
+      - provider: openai-official
+        model: gpt-3.5-turbo
+        pricing_input: 0.0005
+        pricing_output: 0.0015
+        priority: 1
+        weight: 100
+
+      - provider: reseller-cheap
+        model: gpt-3.5-turbo
+        pricing_input: 0.0003
+        pricing_output: 0.001
+        priority: 2
+        weight: 90
+
+  # Claude 3 Opus（长上下文）
+  claude-3-opus:
+    providers:
+      - provider: openai-official
+        model: claude-3-opus-20240229
+        pricing_input: 0.015
+        pricing_output: 0.075
+        priority: 1
+        weight: 100
+
+  # Claude 3 Sonnet（平衡）
+  claude-3-sonnet:
+    providers:
+      - provider: openai-official
+        model: claude-3-sonnet-20240229
+        pricing_input: 0.003
+        pricing_output: 0.015
+        priority: 1
+        weight: 100
+
+# 默认通配符路由
+"*":
+  providers:
+    - provider: openai-official
+      model: ""

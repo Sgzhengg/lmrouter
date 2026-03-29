@@ -10,6 +10,8 @@ import { auth } from "./middlewares/auth.js";
 import anthropicRouter from "./routes/v1/anthropic.js";
 import openaiRouter from "./routes/v1/openai.js";
 import v1Router from "./routes/v1.js";
+import adminProvidersRouter from "./routes/admin/providers.js";
+import adminModelsRouter from "./routes/admin/models.js";
 import type { ContextEnv } from "./types/hono.js";
 import { getConfig, loadConfigFromCloudflareKV } from "./utils/config.js";
 import { getUptime } from "./utils/utils.js";
@@ -86,6 +88,11 @@ app.get("/api/health", auth, (c) => {
 app.route("/anthropic", anthropicRouter);
 app.route("/openai", openaiRouter);
 app.route("/v1", v1Router);
+
+// Admin API 路由（需要管理员权限）
+// TODO: 添加管理员权限中间件
+app.route("/admin", adminProvidersRouter);
+app.route("/admin", adminModelsRouter);
 
 // Favicon 处理 - 返回 204 No Content 避免浏览器报错
 app.get("/favicon.ico", (c) => {

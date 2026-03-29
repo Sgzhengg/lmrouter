@@ -1,0 +1,53 @@
+# LMRouter MockLLM 测试环境配置
+# 用于测试账号池和智能路由功能
+
+server:
+  host: 0.0.0.0
+  port: 3000
+  logging: debug
+
+auth:
+  enabled: false
+
+access_keys:
+  - sk-test-key-1
+  - sk-test-key-2
+
+# MockLLM 提供商配置
+# 模拟 3 个不同的提供商，用于测试负载均衡和故障转移
+providers:
+  mockllm-1:
+    type: openai
+    base_url: http://localhost:8000
+    api_key: mock-key-1
+    priority: 1
+
+  mockllm-2:
+    type: openai
+    base_url: http://localhost:8001
+    api_key: mock-key-2
+    priority: 2
+
+  mockllm-3:
+    type: openai
+    base_url: http://localhost:8002
+    api_key: mock-key-3
+    priority: 3
+
+# 模型配置
+models:
+  gpt-4-mock:
+    providers:
+      - provider: mockllm-1
+        model: gpt-4
+      - provider: mockllm-2
+        model: gpt-4
+      - provider: mockllm-3
+        model: gpt-4
+
+  gpt-3.5-turbo-mock:
+    providers:
+      - provider: mockllm-1
+        model: gpt-3.5-turbo
+      - provider: mockllm-2
+        model: gpt-3.5-turbo
