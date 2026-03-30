@@ -26,6 +26,7 @@ export default function KeysPage() {
     },
   ])
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [showCreateDialog, setShowCreateDialog] = useState(false)
 
   const copyToClipboard = (key: string, id: string) => {
     navigator.clipboard.writeText(key)
@@ -37,6 +38,20 @@ export default function KeysPage() {
     if (confirm('确定要删除此密钥吗？')) {
       setKeys(keys.filter((key) => key.id !== id))
     }
+  }
+
+  const createKey = (name: string) => {
+    // 生成随机密钥
+    const newKey = `sk-${Math.random().toString(36).substring(2, 15)}-${Math.random().toString(36).substring(2, 15)}`
+    const newKeyData: ApiKeyDisplay = {
+      id: Date.now().toString(),
+      key: newKey,
+      name,
+      createdAt: new Date().toISOString(),
+      lastUsed: undefined,
+    }
+    setKeys([newKeyData, ...keys])
+    setShowCreateDialog(false)
   }
 
   const formatDate = (dateString: string) => {
@@ -57,7 +72,10 @@ export default function KeysPage() {
             管理您的 LMRouter API 密钥
           </p>
         </div>
-        <button className="btn-primary flex items-center space-x-2">
+        <button
+          onClick={() => setShowCreateDialog(true)}
+          className="btn-primary flex items-center space-x-2"
+        >
           <Plus className="w-4 h-4" />
           <span>新建密钥</span>
         </button>
@@ -116,6 +134,66 @@ export default function KeysPage() {
           </p>
         </div>
       </div>
+
+      {/* 创建密钥对话框 */}
+      {showCreateDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <h2 className="text-xl font-bold mb-4">创建 API 密钥</h2>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  const formData = new FormData(e.currentTarget)
+                  const name = formData.get('name') as string
+                  createKey(name)
+                }}
+              >
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      密钥名称
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      placeholder="例如: 生产环境密钥"
+                    />
+                    <p className="mt-2 text-sm text-gray-500">
+                      为此密钥取一个易于识别的名称
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-sm text-yellow-800">
+                      ⚠️ 创建后请立即复制密钥，出于安全原因，您将无法再次看到完整的密钥。
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateDialog(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    取消
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                  >
+                    创建
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

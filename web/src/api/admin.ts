@@ -86,6 +86,21 @@ export const providersApi = {
     const response = await api.get<ProviderAccountsResponse>(`/providers/${providerId}/accounts`)
     return response.data
   },
+
+  /**
+   * 创建账号
+   */
+  async createAccount(providerId: string, data: {
+    accountName: string
+    apiKey: string
+    rpmLimit?: number
+    tpmLimit?: number
+    weight?: number
+    priority?: number
+  }): Promise<ProviderAccount> {
+    const response = await api.post<ProviderAccount>(`/providers/${providerId}/accounts`, data)
+    return response.data
+  },
 }
 
 // ============================================
