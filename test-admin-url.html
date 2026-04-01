@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL 测试 - LMRouter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        .correct { color: #10b981; font-weight: bold; }
+        .wrong { color: #ef4444; font-weight: bold; }
+        .url-box {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 18px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #10b981;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 10px 10px 0;
+            font-weight: bold;
+        }
+        .btn:hover { background: #059669; }
+        .btn-secondary {
+            background: #6366f1;
+        }
+        .btn-secondary:hover { background: #4f46e5; }
+        .info {
+            background: #dbeafe;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #3b82f6;
+        }
+        .warning {
+            background: #fef3c7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #f59e0b;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🔍 URL 测试工具</h1>
+
+        <div class="info">
+            <strong>当前 URL：</strong>
+            <div class="url-box" id="currentUrl"></div>
+        </div>
+
+        <div id="result"></div>
+
+        <div class="warning">
+            <strong>⚠️ 重要提示：</strong>
+            <ul>
+                <li>端口 <strong>3002</strong> = Vite 开发服务器（旧代码）</li>
+                <li>端口 <strong>3000</strong> = 生产服务器（新代码）✅</li>
+            </ul>
+        </div>
+
+        <div>
+            <a href="http://localhost:3000/admin" class="btn" target="_blank">
+                ✅ 访问正确的管理后台（端口 3000）
+            </a>
+            <a href="http://localhost:3000/admin" class="btn btn-secondary" onclick="testAPI(); return false;">
+                🧪 测试 API 连接
+            </a>
+        </div>
+
+        <div id="apiResult" style="margin-top: 20px;"></div>
+    </div>
+
+    <script>
+        const currentUrl = window.location.href;
+        const currentPort = window.location.port;
+
+        document.getElementById('currentUrl').textContent = currentUrl;
+
+        const resultDiv = document.getElementById('result');
+
+        if (currentPort === '3000') {
+            resultDiv.innerHTML = `
+                <div class="info" style="background: #d1fae5; border-left-color: #10b981;">
+                    <h2 class="correct">✅ 正确！</h2>
+                    <p>您正在访问端口 3000（生产服务器）</p>
+                    <p>这是正确的 URL，应该能看到新的顶部导航栏</p>
+                </div>
+            `;
+        } else if (currentPort === '3002') {
+            resultDiv.innerHTML = `
+                <div class="warning" style="background: #fee2e2; border-left-color: #ef4444;">
+                    <h2 class="wrong">❌ 错误！</h2>
+                    <p>您正在访问端口 3002（开发服务器）</p>
+                    <p>这就是为什么您看到旧界面的原因！</p>
+                    <p><strong>请点击上方按钮访问端口 3000</strong></p>
+                </div>
+            `;
+        } else {
+            resultDiv.innerHTML = `
+                <div class="warning">
+                    <h2>❓ 未知端口</h2>
+                    <p>当前端口：${currentPort || '默认端口'}</p>
+                </div>
+            `;
+        }
+
+        function testAPI() {
+            const apiResult = document.getElementById('apiResult');
+            apiResult.innerHTML = '<p>正在测试...</p>';
+
+            fetch('http://localhost:3000/admin')
+                .then(response => response.text())
+                .then(html => {
+                    const jsMatch = html.match(/src="\/admin\/assets\/([^"]+)"/);
+                    const jsFile = jsMatch ? jsMatch[1] : '未找到';
+
+                    if (jsFile === 'index-Cbi3I_oU.js') {
+                        apiResult.innerHTML = `
+                            <div class="info" style="background: #d1fae5; border-left-color: #10b981;">
+                                <h3 class="correct">✅ API 测试成功！</h3>
+                                <p><strong>JS 文件：</strong> ${jsFile}</p>
+                                <p><strong>状态：</strong> 新版本已部署</p>
+                                <p><strong>预期界面：</strong> 顶部导航栏 + 4个菜单</p>
+                            </div>
+                        `;
+                    } else {
+                        apiResult.innerHTML = `
+                            <div class="warning" style="background: #fee2e2; border-left-color: #ef4444;">
+                                <h3 class="wrong">⚠️ JS 文件不匹配</h3>
+                                <p><strong>当前文件：</strong> ${jsFile}</p>
+                                <p><strong>预期文件：</strong> index-Cbi3I_oU.js</p>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    apiResult.innerHTML = `
+                        <div class="warning" style="background: #fee2e2; border-left-color: #ef4444;">
+                            <h3 class="wrong">❌ API 测试失败</h3>
+                            <p>${error.message}</p>
+                            <p>请确保后端服务器正在运行（npm start）</p>
+                        </div>
+                    `;
+                });
+        }
+    </script>
+</body>
+</html>

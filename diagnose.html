@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>诊断工具 - LMRouter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background: #2a2a2a;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #444;
+        }
+        h1 {
+            color: #10b981;
+            margin-bottom: 20px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section-title {
+            color: #60a5fa;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        .info {
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 5px 0;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .good {
+            color: #10b981;
+        }
+        .bad {
+            color: #ef4444;
+        }
+        .warning {
+            color: #f59e0b;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #10b981;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 10px 10px 0;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+        }
+        .btn:hover {
+            background: #059669;
+        }
+        .btn-secondary {
+            background: #6366f1;
+        }
+        .btn-secondary:hover {
+            background: #4f46e5;
+        }
+        pre {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .screenshot-guide {
+            background: #1e3a8a;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .screenshot-guide h3 {
+            color: #60a5fa;
+            margin-bottom: 15px;
+        }
+        .screenshot-guide ol {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>🔍 LMRouter 诊断工具</h1>
+            <p style="color: #9ca3af; margin-bottom: 20px;">帮助您诊断浏览器访问问题</p>
+
+            <div class="section">
+                <div class="section-title">📍 当前页面信息</div>
+                <div class="info" id="currentUrl"></div>
+                <div class="info" id="userAgent"></div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">🌐 服务器连接测试</div>
+                <div id="serverTests"></div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">📄 HTML 内容分析</div>
+                <div id="htmlAnalysis"></div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">📁 JS 文件分析</div>
+                <div id="jsAnalysis"></div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">🎯 诊断结论</div>
+                <div id="conclusion"></div>
+            </div>
+
+            <div class="section">
+                <button class="btn" onclick="runAllTests()">🔄 重新诊断</button>
+                <button class="btn btn-secondary" onclick="openAdmin()">打开管理后台</button>
+            </div>
+
+            <div class="screenshot-guide">
+                <h3>📸 如果您看到侧边栏，请截图并发送：</h3>
+                <ol>
+                    <li>按 <strong>F12</strong> 打开开发者工具</li>
+                    <li>点击 <strong>Console</strong> 标签</li>
+                    <li>在 Console 中输入：<code>document.body.innerHTML</code></li>
+                    <li>截图整个浏览器窗口（包括地址栏）</li>
+                    <li>告诉我您访问的 URL（地址栏中显示的完整地址）</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 显示当前页面信息
+        document.getElementById('currentUrl').textContent = `当前 URL: ${window.location.href}`;
+        document.getElementById('userAgent').textContent = `浏览器: ${navigator.userAgent}`;
+
+        async function runAllTests() {
+            await testServerConnection();
+            await analyzeHTML();
+            await analyzeJS();
+            drawConclusion();
+        }
+
+        async function testServerConnection() {
+            const container = document.getElementById('serverTests');
+            container.innerHTML = '<div class="info">正在测试服务器连接...</div>';
+
+            const results = [];
+
+            // 测试端口 3000
+            try {
+                const response = await fetch('http://localhost:3000/admin');
+                results.push({
+                    port: 3000,
+                    status: response.status,
+                    success: response.ok
+                });
+            } catch (error) {
+                results.push({
+                    port: 3000,
+                    status: 'Error',
+                    success: false,
+                    error: error.message
+                });
+            }
+
+            // 测试端口 3002
+            try {
+                const response = await fetch('http://localhost:3002/admin');
+                results.push({
+                    port: 3002,
+                    status: response.status,
+                    success: response.ok
+                });
+            } catch (error) {
+                results.push({
+                    port: 3002,
+                    status: 'Error',
+                    success: false,
+                    error: error.message
+                });
+            }
+
+            let html = '';
+            results.forEach(result => {
+                const className = result.success ? 'good' : 'bad';
+                const statusText = result.success ? '✅ 正常' : `❌ ${result.error || result.status}`;
+                html += `<div class="info">端口 ${result.port}: <span class="${className}">${statusText}</span></div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        async function analyzeHTML() {
+            const container = document.getElementById('htmlAnalysis');
+            container.innerHTML = '<div class="info">正在分析 HTML 内容...</div>';
+
+            try {
+                const response = await fetch('http://localhost:3000/admin');
+                const html = await response.text();
+
+                const hasAdminTitle = html.includes('LMRouter - Admin Console');
+                const hasClientTitle = html.includes('LMRouter Console');
+                const hasNewJS = html.includes('index-Cbi3I_oU.js');
+                const hasOldJS = html.includes('index-DSahdeiG.js');
+                const hasCacheMeta = html.includes('no-cache, no-store, must-revalidate');
+
+                let html = '';
+                html += `<div class="info">标题: ${hasAdminTitle ? '<span class="good">✅ LMRouter - Admin Console</span>' : '<span class="bad">❌ 不是管理后台</span>'}</div>`;
+                html += `<div class="info">新版本 JS: ${hasNewJS ? '<span class="good">✅ index-Cbi3I_oU.js</span>' : '<span class="bad">❌ 未找到</span>'}</div>`;
+                html += `<div class="info">旧版本 JS: ${hasOldJS ? '<span class="warning">⚠️ 发现旧版本</span>' : '<span class="good">✅ 无旧版本</span>'}</div>`;
+                html += `<div class="info">防缓存标签: ${hasCacheMeta ? '<span class="good">✅ 存在</span>' : '<span class="bad">❌ 不存在</span>'}</div>`;
+
+                container.innerHTML = html;
+            } catch (error) {
+                container.innerHTML = `<div class="info bad">❌ 错误: ${error.message}</div>`;
+            }
+        }
+
+        async function analyzeJS() {
+            const container = document.getElementById('jsAnalysis');
+            container.innerHTML = '<div class="info">正在分析 JS 文件...</div>';
+
+            try {
+                const response = await fetch('http://localhost:3000/admin/assets/index-Cbi3I_oU.js');
+                const js = await response.text();
+
+                const hasNewNav = js.includes('供应商管理') && js.includes('路由策略');
+                const hasTopNav = js.includes('bg-white border-b border-gray-200');
+                const hasSidebar = js.includes('sidebar') || js.includes('侧边栏');
+                const hasRoutes = js.includes('/admin/providers') && js.includes('/admin/routing');
+
+                let html = '';
+                html += `<div class="info">新导航文本: ${hasNewNav ? '<span class="good">✅ 存在</span>' : '<span class="bad">❌ 不存在</span>'}</div>`;
+                html += `<div class="info">顶部导航样式: ${hasTopNav ? '<span class="good">✅ 存在</span>' : '<span class="bad">❌ 不存在</span>'}</div>`;
+                html += `<div class="info">侧边栏代码: ${hasSidebar ? '<span class="warning">⚠️ 发现</span>' : '<span class="good">✅ 无侧边栏</span>'}</div>`;
+                html += `<div class="info">管理路由: ${hasRoutes ? '<span class="good">✅ 存在</span>' : '<span class="bad">❌ 不存在</span>'}</div>`;
+                html += `<div class="info">JS 文件大小: ${(js.length / 1024).toFixed(2)} KB</div>`;
+
+                container.innerHTML = html;
+            } catch (error) {
+                container.innerHTML = `<div class="info bad">❌ 错误: ${error.message}</div>`;
+            }
+        }
+
+        function drawConclusion() {
+            const container = document.getElementById('conclusion');
+            const currentPort = window.location.port;
+
+            let html = '';
+            html += `<div class="info">当前访问端口: <span class="${currentPort === '3000' ? 'good' : 'bad'}">${currentPort || '默认'}</span></div>`;
+
+            if (currentPort === '3000') {
+                html += `<div class="info good">✅ 您正在访问正确的端口 (3000)</div>`;
+                html += `<div class="info warning">⚠️ 如果仍然看到旧界面，可能是浏览器缓存问题</div>`;
+                html += `<div class="info">请尝试：Ctrl+Shift+R 强制刷新</div>`;
+            } else if (currentPort === '3002') {
+                html += `<div class="info bad">❌ 您正在访问错误的端口 (3002)！</div>`;
+                html += `<div class="info">请访问：<a href="http://localhost:3000/admin" style="color: #10b981;">http://localhost:3000/admin</a></div>`;
+            } else {
+                html += `<div class="info warning">⚠️ 未知端口: ${currentPort || '默认'}</div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function openAdmin() {
+            window.open('http://localhost:3000/admin', '_blank');
+        }
+
+        // 页面加载时自动运行测试
+        window.addEventListener('DOMContentLoaded', runAllTests);
+    </script>
+</body>
+</html>

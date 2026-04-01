@@ -16,9 +16,9 @@ import {
 } from 'lucide-react'
 
 export default function ProvidersPage() {
-  const [providers, setProviders] = useState<Provider[]>([])
+  const [providers, setProviders] = useState<Provider[] | undefined>(undefined)
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null)
-  const [accounts, setAccounts] = useState<ProviderAccount[]>([])
+  const [accounts, setAccounts] = useState<ProviderAccount[] | undefined>(undefined)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -33,7 +33,7 @@ export default function ProvidersPage() {
       setLoading(true)
       setError(null)
       const data = await providersApi.getProviders()
-      setProviders(data.providers)
+      setProviders(data.providers || [])
     } catch (err: any) {
       console.error('加载供应商列表失败:', err)
       // 使用模拟数据进行演示
@@ -145,7 +145,7 @@ export default function ProvidersPage() {
   const loadAccounts = async (providerId: string) => {
     try {
       const data = await providersApi.getProviderAccounts(providerId)
-      setAccounts(data.accounts)
+      setAccounts(data.accounts || [])
     } catch (err: any) {
       console.error('加载账号失败:', err)
     }
@@ -244,7 +244,7 @@ export default function ProvidersPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">总供应商数</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{providers.length}</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{providers?.length || 0}</p>
             </div>
             <div className="p-3 bg-blue-100 rounded-lg">
               <Settings className="w-8 h-8 text-blue-600" />
@@ -257,7 +257,7 @@ export default function ProvidersPage() {
             <div>
               <p className="text-sm font-medium text-gray-600">活跃供应商</p>
               <p className="text-3xl font-bold text-green-600 mt-2">
-                {providers.filter((p) => p.status === 'active').length}
+                {providers?.filter((p) => p.status === 'active').length || 0}
               </p>
             </div>
             <div className="p-3 bg-green-100 rounded-lg">
@@ -271,7 +271,7 @@ export default function ProvidersPage() {
             <div>
               <p className="text-sm font-medium text-gray-600">已启用</p>
               <p className="text-3xl font-bold text-blue-600 mt-2">
-                {providers.filter((p) => p.enabled).length}
+                {providers?.filter((p) => p.enabled).length || 0}
               </p>
             </div>
             <div className="p-3 bg-blue-100 rounded-lg">
@@ -285,7 +285,7 @@ export default function ProvidersPage() {
             <div>
               <p className="text-sm font-medium text-gray-600">总账号数</p>
               <p className="text-3xl font-bold text-purple-600 mt-2">
-                {accounts.length}
+                {accounts?.length || 0}
               </p>
             </div>
             <div className="p-3 bg-purple-100 rounded-lg">
@@ -326,7 +326,7 @@ export default function ProvidersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {providers.map((provider) => (
+              {(providers || []).map((provider) => (
                 <tr
                   key={provider.id}
                   className={`hover:bg-gray-50 cursor-pointer ${
@@ -363,7 +363,7 @@ export default function ProvidersPage() {
                     {provider.priority}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {accounts.filter((a) => a.providerId === provider.id).length}
+                    {(accounts || []).filter((a) => a.providerId === provider.id).length}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
@@ -436,7 +436,7 @@ export default function ProvidersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {accounts
+                {(accounts || [])
                   .filter((a) => a.providerId === selectedProvider.id)
                   .map((account) => (
                     <tr key={account.id} className="hover:bg-gray-50">
@@ -497,7 +497,7 @@ export default function ProvidersPage() {
             </table>
           </div>
 
-          {accounts.filter((a) => a.providerId === selectedProvider.id).length ===
+          {(accounts || []).filter((a) => a.providerId === selectedProvider.id).length ===
             0 && (
             <div className="text-center py-12">
               <p className="text-gray-500">该供应商暂无账号</p>
